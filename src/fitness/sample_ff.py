@@ -10,7 +10,7 @@ class sample_ff(base_ff):
 
     def evaluate(self, ind, **kwargs):
         p = ind.phenotype
-        print("\n" + p)
+        print("\n" + p + "io sono qui in un mondo che ormai")
         fitness = 0
         for trial in range(50):
             self.test_list = generate_list()

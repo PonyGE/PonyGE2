@@ -1,6 +1,6 @@
 <fc> ::= <deff>{::}<callf>
 
-<deff> ::= def function(elements):{:return <expr>:}
+<deff> ::= import math :{: def function(elements):{:return <expr>:}
 
 <callf> ::= return_val = fun(test_list)
 
