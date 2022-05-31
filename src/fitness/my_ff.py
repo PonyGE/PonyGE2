@@ -39,19 +39,24 @@ class my_ff(base_ff):
         #print("\n" + p)
         fitness = 0
         file = pd.read_csv(train_absolute, skiprows=1, header=None)
+        ground_truth = []
+        guesses = []
+        times = []
         for x in range(file.shape[0]):
             tuple = file.loc[x].tolist()
             function = variables_substitution(p, tuple)
-            self.test_list = tuple
             try:
                 t0 = time.time()
-                guess = eval(function)
+                guesses.append(eval(function))
                 t1 = time.time()
-                fitness += mean_squared_error(guess, tuple[54], squared=False)
+                ground_truth.append(tuple[54])
+                times.append(t1-t0)
+                print("Iteration {}: Ok".format(x))
             except:
-                fitness = self.default_fitness
-                break
-        return fitness
+                print("EXCEPTION")
+                return self.default_fitness
+        function_fitness = mean_squared_error(ground_truth, guesses, squared=False)
+        return function_fitness
 
 
 def open_train_file(directory, extension):
