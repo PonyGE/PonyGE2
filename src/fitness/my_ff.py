@@ -68,10 +68,8 @@ def open_train_file(directory, extension):
         for filename in files:
             if filename.find(extension) > 0:
                 file = directory + "/" + filename
-                print("dai tocca qui ")
                 print(file)
     if file is not None:
-        print("SONO QUI")
         df = pd.read_csv(file, skiprows=1, header=None)
         print(df)
         return df
