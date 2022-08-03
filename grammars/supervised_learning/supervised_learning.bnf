@@ -2,7 +2,7 @@
 	 	  (<e>-<e>) |
 		  (<e>*<e>) |
 		  aq(<e>,<e>) |
-		  x[:, <varidx>] |
+		  x.iloc[:, <varidx>] |
 		  <c>
 <varidx> ::= GE_RANGE:dataset_n_vars
 <c> ::= <d>.<d> | -<d>.<d>

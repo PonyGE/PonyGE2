@@ -1,5 +1,5 @@
 <e>  ::=  (<e> & <e>) |
 	 	  (<e> "|" <e>) |
 		  ~<e> |
-		  x[:, <varidx>]
+		  x.iloc[:, <varidx>]
 <varidx> ::= GE_RANGE:dataset_n_vars
