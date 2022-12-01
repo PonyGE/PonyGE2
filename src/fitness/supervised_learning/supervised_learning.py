@@ -69,7 +69,7 @@ class supervised_learning(base_ff):
             raise ValueError("Unknown dist: " + dist)
 
         shape_mismatch_txt = """Shape mismatch between y and yhat. Please check
-that your grammar uses the `x[:, 0]` style, not `x[0]`. Please see change
+that your grammar uses the `x.iloc[:, 0]` style, not `x[0]`. Please see change
 at https://github.com/PonyGE/PonyGE2/issues/130."""
 
         if params['OPTIMIZE_CONSTANTS']:
