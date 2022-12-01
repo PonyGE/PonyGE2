@@ -4,8 +4,13 @@
     Copyright (c) 2014 Michael Fenton
     Hereby licensed under the GNU GPL v3."""
 
+from posixpath import dirname
 from sys import path, executable
-path.append("../src")
+
+from os import chdir
+from pathlib import Path
+path.append(str(Path().resolve().parents[0]))
+
 
 from utilities.algorithm.general import check_python_version
 
@@ -16,7 +21,7 @@ from subprocess import call
 import sys
 
 from algorithm.parameters import params, set_params
-from scripts.stats_parser import parse_stats_from_runs
+from stats_parser import parse_stats_from_runs
 
 
 def execute_run(seed):
@@ -82,6 +87,9 @@ def main():
 
     :return: Nothing.
     """
+
+    # Change dir so that ponyge.py file can run when called in excute_run()
+    chdir("..")
 
     # Setup run parameters.
     set_params(sys.argv[1:], create_files=False)
