@@ -1,0 +1,35 @@
+<fc> ::= <deff>{::}<callf>
+
+<deff> ::= def fun(li):{:m = 0{::}<code>{::}return m:}
+
+<callf> ::= return_val = fun(test_list)
+
+<code> ::= <stmt> | <stmt>{::}<code>
+
+<stmt> ::= <var> = <expr> | <for> | <if>
+
+<if> ::= if <cond>:<if-opt>
+
+<if-opt> ::= {:<code>:} | {:<code>:}else:{:<code>:} | {:<code>:}elif <cond>:{:<if-opt>:}
+
+<cond> ::= <expr> <c-op> <expr>
+
+<c-op> ::= ">=" | "<=" | ">" | "<"
+
+<expr> ::= <number> | <var> | <expr> <op> <expr>
+
+<for> ::= for i in <list-var>:{:<fl-code>:}
+
+<fl-stmt> ::= <var> = <expr> | <fl-if>
+
+<fl-code> ::= <fl-stmt> | <fl-stmt>{::}<fl-code>
+
+<fl-if> ::= if <cond>:<fl-if-opt>
+
+<fl-if-opt> ::= {:<fl-code>:} | {:<fl-code>:}else:{:<fl-code>:} | {:<fl-code>:}elif <cond>:{:<fl-if-opt>:}
+
+<var> ::= m | i
+<list-var> ::= li
+<number> ::= <num><num><num> | <num><num> | <num>
+<num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+<op> ::= + | - | * | / | // | %
