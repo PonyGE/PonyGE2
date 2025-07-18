@@ -37,9 +37,6 @@ class supervised_learning(base_ff):
         # Find number of variables.
         self.n_vars = np.shape(self.training_in)[1] # sklearn convention
 
-        # Regression/classification-style problems use training and test data.
-        if params['DATASET_TEST']:
-            self.training_test = True
 
     def evaluate(self, ind, **kwargs):
         """

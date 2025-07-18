@@ -59,7 +59,6 @@ class regression_random_polynomial(regression):
         # if we want a separate test set, generate a set of fitness
         # cases for it
         if params['DATASET_TEST']:
-            self.training_test = True
             self.test_in = np.random.random((n_vars, n_samples))
             self.test_exp = p.eval(self.training_in)
 

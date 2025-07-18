@@ -115,7 +115,7 @@ def get_soo_stats(individuals, end):
         stdout.flush()
 
     # Generate test fitness on regression problems
-    if hasattr(params['FITNESS_FUNCTION'], "training_test") and end:
+    if params["DATASET_TEST"] and end:
         # Save training fitness.
         trackers.best_ever.training_fitness = copy(trackers.best_ever.fitness)
 
@@ -240,7 +240,7 @@ def get_moo_stats(individuals, end):
         stdout.flush()
 
     # Generate test fitness on regression problems
-    if hasattr(params['FITNESS_FUNCTION'], "training_test") and end:
+    if params["DATASET_TEST"] and end:
 
         for ind in trackers.best_ever:
             # Iterate over all individuals in the first front.
@@ -249,7 +249,10 @@ def get_moo_stats(individuals, end):
             ind.training_fitness = copy(ind.fitness)
 
             # Evaluate test fitness.
-            ind.test_fitness = params['FITNESS_FUNCTION'](ind, dist='test')
+            ind.test_fitness = [
+                func(ind, dist="test")
+                for func in params["FITNESS_FUNCTION"].fitness_functions
+            ]
 
             # Set main fitness as training fitness.
             ind.fitness = ind.training_fitness
@@ -364,9 +367,8 @@ def print_final_stats():
     :return: Nothing.
     """
 
-    if hasattr(params['FITNESS_FUNCTION'], "training_test"):
-        print("\n\nBest:\n  Training fitness:\t",
-              trackers.best_ever.training_fitness)
+    if params["DATASET_TEST"]:
+        print("\n\nBest:\n  Training fitness:\t", trackers.best_ever.training_fitness)
         print("  Test fitness:\t\t", trackers.best_ever.test_fitness)
     else:
         print("\n\nBest:\n  Fitness:\t", trackers.best_ever.fitness)
