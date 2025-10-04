@@ -1,6 +1,7 @@
 from sys import path
 
-path.append("../src")
+from pathlib import Path
+path.append(str(Path().resolve().parents[0]))
 
 from utilities.algorithm.general import check_python_version
 
