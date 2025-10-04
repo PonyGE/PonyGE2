@@ -1,8 +1,17 @@
 from math import floor
 from re import DOTALL, MULTILINE, finditer, match
 from sys import maxsize
+from itertools import chain, combinations
+import pandas as pd
 
 from algorithm.parameters import params
+
+def powerset(iterable, minlen=0, maxlen=None):
+    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+    s = list(iterable)
+    if maxlen is None: maxlen = len(s)
+    return chain.from_iterable(combinations(s, r)
+                               for r in range(minlen, maxlen+1))
 
 
 class Grammar(object):
@@ -132,46 +141,29 @@ class Grammar(object):
                     # Initialise empty data structures for production choice
                     tmp_production, terminalparts = [], None
 
-                    # special cases: GE_RANGE:dataset_n_vars will be
-                    # transformed to productions 0 | 1 | ... |
-                    # n_vars-1, and similar for dataset_n_is,
-                    # dataset_n_os
-                    GE_RANGE_regex = r'GE_RANGE:(?P<range>\w*)'
-                    m = match(GE_RANGE_regex, p.group('production'))
+                    # special cases: GE_RANGE and GE_GENERATE
+                    GE_GENERATE_regex = r'GE_(RANGE|GENERATE):(.*)'
+                    m = match(GE_GENERATE_regex, p.group('production'))
                     if m:
-                        try:
-                            if m.group('range') == "dataset_n_vars":
-                                # number of columns from dataset
-                                n = params['FITNESS_FUNCTION'].n_vars
-                            elif m.group('range') == "dataset_n_is":
-                                # number of input symbols (see
-                                # if_else_classifier.py)
-                                n = params['FITNESS_FUNCTION'].n_is
-                            elif m.group('range') == "dataset_n_os":
-                                # number of output symbols
-                                n = params['FITNESS_FUNCTION'].n_os
-                            else:
-                                # assume it's just an int
-                                n = int(m.group('range'))
-                        except (ValueError, AttributeError):
-                            raise ValueError("Bad use of GE_RANGE: "
-                                             + m.group())
+                        GENERATE_or_RANGE, expr = m.groups()
+                        for sym in self.GE_GENERATE(GENERATE_or_RANGE, expr):
 
-                        for i in range(n):
+                            # print(sym)
+
                             # add a terminal symbol
                             tmp_production, terminalparts = [], None
                             symbol = {
-                                "symbol": str(i),
+                                "symbol": sym,
                                 "type": "T",
                                 "min_steps": 0,
                                 "recursive": False}
                             tmp_production.append(symbol)
-                            if str(i) not in self.terminals:
-                                self.terminals[str(i)] = \
+                            if sym not in self.terminals:
+                                self.terminals[sym] = \
                                     [rule.group('rulename')]
                             elif rule.group('rulename') not in \
-                                    self.terminals[str(i)]:
-                                self.terminals[str(i)].append(
+                                    self.terminals[sym]:
+                                self.terminals[sym].append(
                                     rule.group('rulename'))
                             tmp_productions.append({"choice": tmp_production,
                                                     "recursive": False,
@@ -652,3 +644,101 @@ class Grammar(object):
     def __str__(self):
         return "%s %s %s %s" % (self.terminals, self.non_terminals,
                                 self.rules, self.start_rule)
+
+    def GE_GENERATE(self, GENERATE_or_RANGE, expr):
+        """
+
+        generate and yield strings
+
+        GE_RANGE:dataset_n_vars  -> 0 | 1 | ... | n_vars-1
+        GE_RANGE:dataset_n_is    -> 0 | 1 | ... | n_is-1
+        GE_RANGE:dataset_n_os    -> 0 | 1 | ... | n_os-1
+        GE_RANGE:<int>           -> 0 | 1 | ... | n-1
+        
+        GE_GENERATE:dataset_vars_const -> x[0] | x[1] | ... x[n-1]
+        GE_GENERATE:dataset_lte_const  -> expressions of form: x[i] <= v (numerical vars)
+        
+        GE_GENERATE:dataset_gt   -> expressions of form: x[i] > v (numerical vars)
+        GE_GENERATE:dataset_eq   -> expressions of form: x[i] == v (categorical vars)
+        GE_GENERATE:dataset_neq  -> expressions of form: x[i] != v (categorical vars)
+        GE_GENERATE:dataset_in   -> expressions of form: x[i].isin(s) (categorical vars; s a set)
+        GE_GENERATE:dataset_nin  -> expressions of form: ~x[i].isin(s) (categorical vars; s a set)                
+
+        GE_GENERATE:<sthg else>  -> the <sthg else> must be eval-able to give a list of strings
+        
+        """
+
+        # print(f"expr: '{expr}'")
+        
+        if GENERATE_or_RANGE == "RANGE":
+                
+            try:
+                if expr == "dataset_n_vars":
+                    # number of columns from dataset
+                    n = params['FITNESS_FUNCTION'].n_vars
+                elif expr == "dataset_n_is":
+                    # number of input symbols (see if_else_classifier.py)
+                    n = params['FITNESS_FUNCTION'].n_is
+                elif expr == "dataset_n_os":
+                    # number of output symbols
+                    n = params['FITNESS_FUNCTION'].n_os
+                else:
+                    # assume it's just an int
+                    n = int(expr)
+            except (ValueError, AttributeError):
+                raise ValueError("Bad use of GE_RANGE: " + expr)
+
+            for i in range(n):
+                yield str(i)
+                    
+        else: # GENERATE_or_RANGE == "GENERATE"
+
+            try:
+
+                # ensure x is a Pandas DataFrame
+                x = params['FITNESS_FUNCTION'].training_in 
+                if type(x) != type(pd.DataFrame()):
+                    x = pd.DataFrame(x)
+                    
+                # numerical comparisons, so dtypes[idx] != object
+                if expr == "dataset_lte_const":
+                    exprs = [f"x['{idx}'] <= {val}" for idx in x.columns
+                             for val in sorted(x[idx].unique())
+                             if x.dtypes[idx] != object]
+                elif expr == "dataset_gt_const":
+                    exprs = [f"x['{idx}'] > {val}" for idx in x.columns
+                             for val in sorted(x[idx].unique())
+                             if x.dtypes[idx] != object]
+
+                # string comparisons, so dtypes[idx] == object
+                elif expr == "dataset_eq":
+                    exprs = [f"x['{idx}'] == '{val}'" for idx in x.columns
+                             for val in x[idx].unique()
+                             if x.dtypes[idx] == object]
+                elif expr == "dataset_neq":
+                    exprs = [f"x['{idx}'] != '{val}'" for idx in x.columns
+                             for val in x[idx].unique()
+                             if x.dtypes[idx] == object]
+                elif expr == "dataset_in":
+                    exprs = [f"x['{idx}'].isin({s})" for idx in x.columns
+                             # no point in sets of len 0 or 1
+                             for s in powerset(x[idx].unique(), minlen=2) 
+                             if x.dtypes[idx] == object]
+                elif expr == "dataset_nin":
+                    exprs = [f"~x['{idx}'].isin({s})" for idx in x.columns
+                             # no point in sets of len 0 or 1
+                             for s in powerset(x[idx].unique(), minlen=2) 
+                             if x.dtypes[idx] == object]
+
+                # user code
+                else:
+                    exprs = eval(expr)
+
+                assert type(exprs) == list
+                assert type(exprs[0]) == str
+            except:
+                raise ValueError("Bad use of GE_GENERATE: " + expr +
+                                 " should eval to list of str")
+                
+            for s in exprs: yield(s)
+                    

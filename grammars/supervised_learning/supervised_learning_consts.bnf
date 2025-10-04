@@ -2,6 +2,6 @@
 	 	  (<e>-<e>) |
 		  (<e>*<e>) |
 		  aq(<e>,<e>) |
-		  x[:, <idx>] |
+		  x.iloc[:, <idx>] |
 		  c[<idx>] # we allow limited number of constants: same as number of variables
 <idx> ::= GE_RANGE:dataset_n_vars

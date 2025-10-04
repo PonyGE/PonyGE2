@@ -1,6 +1,7 @@
 from os import path
 
 import numpy as np
+import pandas as pd
 from algorithm.parameters import params
 
 
@@ -13,53 +14,17 @@ def get_Xy_train_test_separate(train_filename, test_filename, skip_header=0):
     :param train_filename: The file name of the training dataset.
     :param test_filename: The file name of the testing dataset.
     :param skip_header: The number of header lines to skip.
-    :return: Parsed numpy arrays of training and testing input (x) and
+    :return: Parsed Pandas DataFrames of training and testing input (x) and
     output (y) data.
     """
 
-    if params['DATASET_DELIMITER']:
-        # Dataset delimiter has been explicitly specified.
-        delimiter = params['DATASET_DELIMITER']
-
-    else:
-        # Try to auto-detect the field separator (i.e. delimiter).
-        f = open(train_filename)
-        for line in f:
-            if line.startswith("#") or len(line) < 2:
-                # Skip excessively short lines or commented out lines.
-                continue
-
-            else:
-                # Set the delimiter.
-                if "\t" in line:
-                    delimiter = "\t"
-                    break
-                elif "," in line:
-                    delimiter = ","
-                    break
-                elif ";" in line:
-                    delimiter = ";"
-                    break
-                elif ":" in line:
-                    delimiter = ":"
-                    break
-                else:
-                    print(
-                        "Warning (in utilities.fitness.get_data.get_Xy_train_test_separate)\n"
-                        "Warning: Dataset delimiter not found. "
-                        "Defaulting to whitespace delimiter.")
-                    delimiter = " "
-                    break
-        f.close()
-
     # Read in all training data.
-    train_Xy = np.genfromtxt(train_filename, skip_header=skip_header,
-                             delimiter=delimiter)
-
+    train_Xy = pd.read_csv(train_filename, sep=None)
+    
     try:
         # Separate out input (X) and output (y) data.
-        train_X = train_Xy[:, :-1] # all columns but last
-        train_y = train_Xy[:, -1]  # last column
+        train_X = train_Xy.iloc[:, :-1] # all columns but last
+        train_y = train_Xy.iloc[:, -1]  # last column
 
     except IndexError:
         s = "utilities.fitness.get_data.get_Xy_train_test_separate\n" \
@@ -69,12 +34,11 @@ def get_Xy_train_test_separate(train_filename, test_filename, skip_header=0):
 
     if test_filename:
         # Read in all testing data.
-        test_Xy = np.genfromtxt(test_filename, skip_header=skip_header,
-                                delimiter=delimiter)
+        test_Xy = pd.read_csv(test_filename, sep=None)
 
         # Separate out input (X) and output (y) data.
-        test_X = test_Xy[:, :-1] # all columns but last
-        test_y = test_Xy[:, -1]  # last column
+        test_X = test_Xy.iloc[:, :-1] # all columns but last
+        test_y = test_Xy.iloc[:, -1]  # last column
 
     else:
         test_X, test_y = None, None

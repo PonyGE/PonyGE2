@@ -2,5 +2,5 @@
 <cond> ::= (<var> == <is>) | <cond> & (<var> == <is>)
 <is> ::= GE_RANGE:dataset_n_is
 <os> ::= GE_RANGE:dataset_n_os
-<var> ::= x[:, <varidx>]
+<var> ::= x.iloc[:, <varidx>]
 <varidx> ::= GE_RANGE:dataset_n_vars
